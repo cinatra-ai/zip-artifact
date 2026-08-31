@@ -1,23 +1,29 @@
 // Archive (ZIP) detail renderer (slot `detail`).
 //
-// A browser cannot render a ZIP archive inline, and the v1 renderer snapshot
-// carries only host-authorized URLs — never the archive bytes — so a
-// client-side central-directory LISTING would require the renderer to fetch and
-// parse the archive itself. That is beyond the sibling bases' passive-URL depth
-// (audio/video/image/pdf all hand a URL to a native element and never
+// A browser cannot render a ZIP archive inline, and the renderer snapshot
+// carries an ADDRESS and never the archive bytes — so a client-side
+// central-directory LISTING would require the renderer to fetch and parse the
+// archive itself. That is beyond the sibling bases' passive-address depth
+// (audio/video/image/pdf all hand an address to a native element and never
 // fetch/parse), so it is deliberately out of scope here: the faithful minimal
 // renderer is a typed download SHELL — the archive's identity, its size, and a
 // download affordance.
 //
-// v1 renderer: requests NO host ports; renders ONLY from the host-supplied
-// authorized snapshot (`ArtifactRendererProps`).
+// THE DOWNLOAD ADDRESS COMES FROM THE BYTE ROAD. Inside a third-party
+// application the host's session route carries no cookie, so a shell offering
+// it hands the reader a dead link. At props version 2 the snapshot carries the
+// byte reference the reader may actually fetch on the surface they are on, and
+// this shell offers that; a snapshot built at the older version has no
+// reference and falls back to the session href. The renderer requests NO host
+// ports, builds no address of its own, and fetches nothing.
 //
 // NEVER-BLANK: the shell always renders the archive identity; the download link
-// appears only when the host authorized one, but the panel is never empty.
+// appears only when a road carries one, but the panel is never empty.
 
 import type { ReactElement } from "react";
 
 import type { ArtifactRendererProps } from "../artifact-renderer-props";
+import { resolveByteRoad } from "./byte-road";
 
 /** Human-readable byte size for the shell (pure; exported for tests). */
 export function formatBytes(size: number | null | undefined): string | null {
@@ -34,7 +40,8 @@ export function formatBytes(size: number | null | undefined): string | null {
 }
 
 export default function ZipArtifactDetail(props: ArtifactRendererProps): ReactElement {
-  const downloadHref = props.actions?.download ?? props.urls?.download ?? null;
+  const bytes = resolveByteRoad(props);
+  const downloadHref = bytes.download;
   const title = props.artifact?.title ?? null;
   const size = formatBytes(props.artifact?.size);
   const heading = title ?? "ZIP archive";
@@ -43,6 +50,7 @@ export default function ZipArtifactDetail(props: ArtifactRendererProps): ReactEl
     <article
       className="soft-panel rounded-card overflow-hidden p-6"
       data-zip-artifact="shell"
+      data-byte-road={bytes.road}
     >
       <p className="text-sm font-medium">{heading}</p>
       <p className="text-sm text-muted-foreground">

@@ -12,7 +12,7 @@ function props(overrides: {
   size?: number;
 }): ArtifactRendererProps {
   return {
-    propsApiVersion: 1,
+    propsApiVersion: 2,
     artifact: {
       id: "art_1",
       title: overrides.title === undefined ? "assets.zip" : overrides.title,
@@ -22,7 +22,7 @@ function props(overrides: {
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-01T00:00:00.000Z",
       ownerLevel: "workspace",
-      visibility: "workspace",
+      visibility: "organization",
       sourceUrl: null,
     },
     representation: { revisionId: "rev_1", mime: "application/zip" },
@@ -30,7 +30,7 @@ function props(overrides: {
       preview: null,
       download: overrides.download === undefined ? "/api/artifacts/art_1/download" : overrides.download,
     },
-    identity: { kind: "mime", extension: null, basis: null, selectable: false },
+    identity: { kind: "no-primary", extension: null },
     actions: {
       download: overrides.download === undefined ? "/api/artifacts/art_1/download" : overrides.download,
       openInSource: null,
@@ -84,11 +84,49 @@ describe("ZipArtifactDetail — the archive download shell", () => {
 
   it("tolerates a malformed snapshot missing urls/actions (never throws, never blank)", () => {
     const malformed = {
-      propsApiVersion: 1,
+      propsApiVersion: 2,
       artifact: { title: null },
     } as unknown as ArtifactRendererProps;
     const { container } = render(<ZipArtifactDetail {...malformed} />);
     expect(container.querySelector('[data-zip-artifact="shell"]')).not.toBeNull();
     expect((container.textContent ?? "").trim().length).toBeGreaterThan(0);
+  });
+});
+
+describe("ZipArtifactDetail — the byte road (props version 2)", () => {
+  const ISLAND = "/api/lifecycle-views/artifact-bytes?bc=sealed-download";
+  const SESSION = "/api/artifacts/art_1/download";
+
+  it("offers the byte reference and never the cookie-gated session route", () => {
+    const { container } = render(
+      <ZipArtifactDetail
+        {...props({})}
+        bytes={{ road: "island", preview: null, download: ISLAND }}
+      />,
+    );
+    expect(container.querySelector("a")?.getAttribute("href")).toBe(ISLAND);
+    expect(container.innerHTML).not.toContain(SESSION);
+    expect(
+      container.querySelector('[data-zip-artifact="shell"]')?.getAttribute("data-byte-road"),
+    ).toBe("island");
+  });
+
+  it("falls back to the session href on an older snapshot that carries no reference", () => {
+    const { container } = render(<ZipArtifactDetail {...props({})} propsApiVersion={1} />);
+    expect(container.querySelector("a")?.getAttribute("href")).toBe(SESSION);
+    expect(
+      container.querySelector('[data-zip-artifact="shell"]')?.getAttribute("data-byte-road"),
+    ).toBe("session");
+  });
+
+  it("stays a typed, never-blank shell when no road carries an address", () => {
+    const { container } = render(
+      <ZipArtifactDetail {...props({ download: null })} propsApiVersion={1} />,
+    );
+    expect(container.querySelector("a")).toBeNull();
+    expect(container.textContent).toContain("ZIP archive");
+    expect(
+      container.querySelector('[data-zip-artifact="shell"]')?.getAttribute("data-byte-road"),
+    ).toBe("none");
   });
 });

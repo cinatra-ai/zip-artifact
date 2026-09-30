@@ -53,12 +53,16 @@ export default function ZipArtifactDetail(props: ArtifactRendererProps): ReactEl
       data-byte-road={bytes.road}
     >
       <p className="text-sm font-medium">{heading}</p>
+      {/* THE FOUR PARTS THE DRAWING GIVES A DOWNLOAD CARD, AND NO FIFTH (the
+          review drawing §V.2): "the file's name, its form, its size, and the
+          download". The sentence this panel used to append, and a control that
+          said what it was downloading, are neither of them parts of it. */}
       <p className="text-sm text-muted-foreground">
-        ZIP archive{size ? ` · ${size}` : ""}. Download to open its contents.
+        ZIP archive{size ? ` · ${size}` : ""}
       </p>
       {downloadHref ? (
         <a href={downloadHref} className="text-sm underline" download>
-          Download the archive
+          Download
         </a>
       ) : null}
     </article>

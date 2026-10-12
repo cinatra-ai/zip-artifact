@@ -23,8 +23,8 @@ export {
   ARTIFACT_RENDERER_PROPS_BYTE_REFERENCE_VERSION,
 } from "./artifact-renderer-props";
 
-/** The closed v1 renderer-slot names. This base ships `detail` only. */
-export type ArtifactUiSlot = "detail" | "preview";
+/** The closed v1 renderer-slot names. This base ships `detail` and `listRow`. */
+export type ArtifactUiSlot = "detail" | "preview" | "listRow";
 
 /** A single slot renderer. v1 requests NO host ports — only these three keys. */
 export interface ArtifactUiRenderer {
@@ -58,6 +58,10 @@ export const zipArtifactManifest: ZipArtifactManifest = {
         entry: "./src/renderers/detail.tsx",
         propsApiVersion: 2,
         representations: ["application/zip","application/x-zip-compressed"],
+      },
+      listRow: {
+        entry: "./src/renderers/list-row.tsx",
+        propsApiVersion: 1,
       },
     },
   },
